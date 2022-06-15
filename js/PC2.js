@@ -17,7 +17,6 @@ async function main() {
 
   twgl.setDefaults({ attribPrefix: "a_" });
 
-  // Loading monito
   let vertSrc = await cg.fetchText("glsl/12-02.vert");
   let fragSrc = await cg.fetchText("glsl/12-02.frag");
   const objPrgInf = twgl.createProgramInfo(gl, [vertSrc, fragSrc]);
@@ -25,13 +24,12 @@ async function main() {
   const objPrgInf1 = twgl.createProgramInfo(gl, [vertSrc, fragSrc]);
   const obj1 = await cg.loadObj("models/crate/crate1.obj", gl, objPrgInf1);
 
-  // Light source (fake lightbulb)
   vertSrc = await cg.fetchText("glsl/ls.vert");
   fragSrc = await cg.fetchText("glsl/ls.frag");
   const lsPrgInf = twgl.createProgramInfo(gl, [vertSrc, fragSrc]);
   const lightbulb = await cg.loadObj("models/cubito/cubito.obj", gl, lsPrgInf);
 
-  // General stuff setup
+
   const cam = new cg.Cam([0, 0, 6], 25);
 
   let aspect = 16.0 / 9.0;
@@ -42,7 +40,7 @@ async function main() {
   const world = m4.create();
   const projection = m4.create();
 
-  // some preloaded arrays to optimize memory usage
+
   const rotationAxis = new Float32Array([0, 1, 0]);
   const temp = v3.create();
   const one = v3.fromValues(1, 1, 1);
@@ -68,13 +66,13 @@ async function main() {
   };
   const fragUniforms = {
     "u_lightColor": v3.create(0),
-    u_lightPosition: new Float32Array([9.0, 7.0, 1.0]),
+    u_lightPosition: new Float32Array([7.0, 7.0, 1.0]),
     u_viewPosition: cam.pos,
   };
   const light1 = {
     u_light_color: v3.fromValues(1, 1, 1),
   };
-  // multiple objects positions
+
 	const numObjs = 50;
   const positions = new Array(numObjs);
 	const rndb = (a, b) => Math.random() * (b - a) + a;
@@ -91,14 +89,14 @@ async function main() {
   gl.enable(gl.DEPTH_TEST);
   gl.enable(gl.CULL_FACE);
 
-  // Render awesome
+
   function render(elapsedTime) {
-    // handling time in seconds maybe
+
     elapsedTime *= 1e-3;
     deltaTime = elapsedTime - lastTime;
     lastTime = elapsedTime;
 
-    // resizing stuff and general preparation
+
     if (twgl.resizeCanvasToDisplaySize(gl.canvas)) {
       gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
       aspect = gl.canvas.width / gl.canvas.height;
@@ -116,7 +114,7 @@ async function main() {
     m4.identity(projection);
     m4.perspective(projection, cam.zoom, aspect, 0.1, 100);
 
-    // drawing object 1
+
     gl.useProgram(objPrgInf.program);
     twgl.setUniforms(objPrgInf, light0);
 
@@ -134,7 +132,7 @@ async function main() {
       }
 		}
 
-    // drawing object 2
+
     gl.useProgram(objPrgInf1.program);
     twgl.setUniforms(objPrgInf1, light0);
 
@@ -151,12 +149,12 @@ async function main() {
       }
 
 		}
-    // logic to move the visual representation of the light source
+
     m4.identity(world);
     m4.translate(world, world, fragUniforms.u_lightPosition);
     m4.scale(world, world, v3.scale(temp, one, 2));
 
-    // drawing the light source cube
+
     gl.useProgram(lsPrgInf.program);
     twgl.setUniforms(lsPrgInf, coords);
     twgl.setUniforms(lsPrgInf, fragUniforms);
