@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en-US">
+	<head>
+		<meta charset="UTF-8">
+		<title>Cubes everywhere | Computer graphics</title>
+		<link href="css/style.css" rel="stylesheet">
+		<style>
+			#inputs {
+				position: relative;
+			}
+			#inputs label {
+				position: absolute;
+				top: 0;
+				left: 0;
+				border: none;
+				background: none;
+				color: #fff;
+			}
+			input {
+				display: block;
+				width: 250px;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="inputs">
+			<canvas id="canvitas"></canvas>
+			<label>
+				<em>Ambient light</em>
+				<input type="range" id="ambient" value="0" min="0" max="100">
+				<em>Theta</em>
+				<input type="range" id="theta" value="0" min="0" max="360">
+			</label>
+		</div>
+		<script type="module" src="/js/PC2.js"></script>
+	</body>
+</html>
