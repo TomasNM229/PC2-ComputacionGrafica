@@ -8,6 +8,7 @@ import * as twgl from "./twgl-full.module.js";
 
 async function main() {
   const ambientLight = document.querySelector("#ambient");
+  const foquitolight = document.querySelector("#foquito");
   const lightTheta = document.querySelector("#theta");
   const canvitas = document.querySelector("#canvitas");
   const gl = canvitas.getContext("webgl2");
@@ -55,6 +56,11 @@ async function main() {
     u_projection: projection,
     u_view: cam.viewM4,
   };
+  const fragUniforms = {
+    "u_lightColor": v3.create(0),
+    u_lightPosition: new Float32Array([9.0, 7.0, 1.0]),
+    u_viewPosition: cam.pos,
+  };
   const light0 = {
     "u_light.ambient": v3.create(0),
     "u_light.cutOff": Math.cos(Math.PI / 15.0),
@@ -71,8 +77,6 @@ async function main() {
   };
   // multiple objects positions
 	const numObjs = 50;
-  const delta = new Array(numObjs);
-  const deltaG = -9.81;
   const positions = new Array(numObjs);
 	const rndb = (a, b) => Math.random() * (b - a) + a;
 	for (let i = 0; i < numObjs; ++i) {
@@ -141,13 +145,13 @@ async function main() {
 
     // logic to move the visual representation of the light source
     m4.identity(world);
-    m4.translate(world, world, light_position);
-    m4.scale(world, world, v3.scale(temp, one, 0.025));
+    m4.translate(world, world, fragUniforms.u_lightPosition);
+    m4.scale(world, world, v3.scale(temp, one, 2));
 
     // drawing the light source cube
     gl.useProgram(lsPrgInf.program);
     twgl.setUniforms(lsPrgInf, coords);
-    twgl.setUniforms(lsPrgInf, light1);
+    twgl.setUniforms(lsPrgInf, fragUniforms);
 
     for (const { bufferInfo, vao } of lightbulb) {
       gl.bindVertexArray(vao);
@@ -174,6 +178,12 @@ async function main() {
     light0["u_light.ambient"][0] = value / 100.0;
     light0["u_light.ambient"][1] = value / 100.0;
     light0["u_light.ambient"][2] = value / 100.0;
+  });
+  foquitolight.addEventListener("change", () => {
+    const value = foquitolight.value;
+    fragUniforms["u_lightColor"][0] = value / 100.0;
+    fragUniforms["u_lightColor"][1] = value / 100.0;
+    fragUniforms["u_lightColor"][2] = value / 100.0;
   });
   lightTheta.addEventListener("change", () => {
     const value = lightTheta.value;
