@@ -22,6 +22,8 @@ async function main() {
   let fragSrc = await cg.fetchText("glsl/12-02.frag");
   const objPrgInf = twgl.createProgramInfo(gl, [vertSrc, fragSrc]);
   const obj = await cg.loadObj("models/crate/crate.obj", gl, objPrgInf);
+  const objPrgInf1 = twgl.createProgramInfo(gl, [vertSrc, fragSrc]);
+  const obj1 = await cg.loadObj("models/crate/crate1.obj", gl, objPrgInf1);
 
   // Light source (fake lightbulb)
   vertSrc = await cg.fetchText("glsl/ls.vert");
@@ -68,15 +70,14 @@ async function main() {
     u_light_color: v3.fromValues(1, 1, 1),
   };
   // multiple objects positions
-	const numObjs = 100;
+	const numObjs = 50;
+  const delta = new Array(numObjs);
+  const deltaG = -9.81;
   const positions = new Array(numObjs);
 	const rndb = (a, b) => Math.random() * (b - a) + a;
 	for (let i = 0; i < numObjs; ++i) {
 		positions[i] = [rndb(-13.0, 13.0), rndb(-12.0, 12.0), rndb(-14.0, 14.0)];
 	}
-
-  gl.enable(gl.DEPTH_TEST);
-  gl.enable(gl.CULL_FACE);
 
   // Render awesome
   function render(elapsedTime) {
@@ -109,6 +110,10 @@ async function main() {
     gl.useProgram(objPrgInf.program);
     twgl.setUniforms(objPrgInf, light0);
 
+    // drawing object 2
+    gl.useProgram(objPrgInf1.program);
+    twgl.setUniforms(objPrgInf1, light0); 
+
     for (const pos of positions) {
       m4.identity(world);
       m4.scale(world, world, v3.scale(temp, one, 1));
@@ -120,6 +125,18 @@ async function main() {
         twgl.setUniforms(objPrgInf, {}, material);
         twgl.drawBufferInfo(gl, bufferInfo);
       }
+		}
+    for (const pos of positions) {
+      m4.identity(world);
+      m4.scale(world, world, v3.scale(temp, one, 1));
+      m4.translate(world, world, pos);
+      m4.rotate(world, world, theta, rotationAxis);
+      twgl.setUniforms(objPrgInf1, coords);
+      for (const { bufferInfo, vao, material } of obj1) {
+        gl.bindVertexArray(vao);
+        twgl.setUniforms(objPrgInf1, {}, material);
+        twgl.drawBufferInfo(gl, bufferInfo);
+      } 
 		}
 
     // logic to move the visual representation of the light source
