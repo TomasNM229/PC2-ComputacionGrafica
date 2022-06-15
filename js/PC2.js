@@ -22,6 +22,8 @@ async function main() {
   let fragSrc = await cg.fetchText("glsl/12-02.frag");
   const objPrgInf = twgl.createProgramInfo(gl, [vertSrc, fragSrc]);
   const obj = await cg.loadObj("models/crate/crate.obj", gl, objPrgInf);
+  const objPrgInf1 = twgl.createProgramInfo(gl, [vertSrc, fragSrc]);
+  const obj1 = await cg.loadObj("models/crate/crate1.obj", gl, objPrgInf1);
 
   // Light source (fake lightbulb)
   vertSrc = await cg.fetchText("glsl/ls.vert");
@@ -53,11 +55,6 @@ async function main() {
     u_projection: projection,
     u_view: cam.viewM4,
   };
-  const fragUniforms = {
-    "u_lightColor": v3.create(0),
-    u_lightPosition: new Float32Array([9.0, 7.0, 1.0]),
-    u_viewPosition: cam.pos,
-  };
   const light0 = {
     "u_light.ambient": v3.create(0),
     "u_light.cutOff": Math.cos(Math.PI / 15.0),
@@ -69,18 +66,31 @@ async function main() {
     "u_light.quadratic": 0.032,
     u_viewPosition: cam.pos,
   };
+  const fragUniforms = {
+    "u_lightColor": v3.create(0),
+    u_lightPosition: new Float32Array([9.0, 7.0, 1.0]),
+    u_viewPosition: cam.pos,
+  };
   const light1 = {
     u_light_color: v3.fromValues(1, 1, 1),
   };
   // multiple objects positions
-	const numObjs = 100;
+	const numObjs = 50;
   const positions = new Array(numObjs);
 	const rndb = (a, b) => Math.random() * (b - a) + a;
 	for (let i = 0; i < numObjs; ++i) {
 		positions[i] = [rndb(-13.0, 13.0), rndb(-12.0, 12.0), rndb(-14.0, 14.0)];
 	}
+  const numObjs1 = 50;
+  const positions1 = new Array(numObjs1);
+	const rndb1 = (a, b) => Math.random() * (b - a) + a;
+	for (let i = 0; i < numObjs; ++i) {
+		positions1[i] = [rndb1(-13.0, 13.0), rndb1(-12.0, 12.0), rndb1(-14.0, 14.0)];
+	}
+
   gl.enable(gl.DEPTH_TEST);
   gl.enable(gl.CULL_FACE);
+
   // Render awesome
   function render(elapsedTime) {
     // handling time in seconds maybe
@@ -96,7 +106,6 @@ async function main() {
     gl.clearColor(0.1, 0.1, 0.1, 1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    // some logic to move the light around
     if (autorotate) theta += deltaTime;
     if (theta > Math.PI * 2) theta -= Math.PI * 2;
     m4.identity(world);
@@ -104,7 +113,6 @@ async function main() {
     m4.translate(world, world, initial_light_pos);
     v3.transformMat4(light_position, origin, world);
 
-    // coordinate system adjustments
     m4.identity(projection);
     m4.perspective(projection, cam.zoom, aspect, 0.1, 100);
 
@@ -112,7 +120,6 @@ async function main() {
     gl.useProgram(objPrgInf.program);
     twgl.setUniforms(objPrgInf, light0);
 
-    // drawing object 2
 
     for (const pos of positions) {
       m4.identity(world);
@@ -125,6 +132,24 @@ async function main() {
         twgl.setUniforms(objPrgInf, {}, material);
         twgl.drawBufferInfo(gl, bufferInfo);
       }
+		}
+
+    // drawing object 2
+    gl.useProgram(objPrgInf1.program);
+    twgl.setUniforms(objPrgInf1, light0);
+
+    for (const pos of positions1) {
+      m4.identity(world);
+      m4.scale(world, world, v3.scale(temp, one, 1));
+      m4.translate(world, world, pos);
+      m4.rotate(world, world, theta, rotationAxis);
+      twgl.setUniforms(objPrgInf1, coords);
+      for (const { bufferInfo, vao, material } of obj1) {
+        gl.bindVertexArray(vao);
+        twgl.setUniforms(objPrgInf1, {}, material);
+        twgl.drawBufferInfo(gl, bufferInfo);
+      }
+
 		}
     // logic to move the visual representation of the light source
     m4.identity(world);
