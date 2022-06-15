@@ -9,7 +9,6 @@ import * as twgl from "./twgl-full.module.js";
 async function main() {
   const ambientLight = document.querySelector("#ambient");
   const foquitolight = document.querySelector("#foquito");
-  const lightTheta = document.querySelector("#theta");
   const canvitas = document.querySelector("#canvitas");
   const gl = canvitas.getContext("webgl2");
   if (!gl) return undefined !== console.log("couldn't create webgl2 context");
@@ -23,8 +22,6 @@ async function main() {
   let fragSrc = await cg.fetchText("glsl/12-02.frag");
   const objPrgInf = twgl.createProgramInfo(gl, [vertSrc, fragSrc]);
   const obj = await cg.loadObj("models/crate/crate.obj", gl, objPrgInf);
-  const objPrgInf1 = twgl.createProgramInfo(gl, [vertSrc, fragSrc]);
-  const obj1 = await cg.loadObj("models/crate/crate1.obj", gl, objPrgInf1);
 
   // Light source (fake lightbulb)
   vertSrc = await cg.fetchText("glsl/ls.vert");
@@ -76,13 +73,14 @@ async function main() {
     u_light_color: v3.fromValues(1, 1, 1),
   };
   // multiple objects positions
-	const numObjs = 50;
+	const numObjs = 100;
   const positions = new Array(numObjs);
 	const rndb = (a, b) => Math.random() * (b - a) + a;
 	for (let i = 0; i < numObjs; ++i) {
 		positions[i] = [rndb(-13.0, 13.0), rndb(-12.0, 12.0), rndb(-14.0, 14.0)];
 	}
-
+  gl.enable(gl.DEPTH_TEST);
+  gl.enable(gl.CULL_FACE);
   // Render awesome
   function render(elapsedTime) {
     // handling time in seconds maybe
@@ -115,8 +113,6 @@ async function main() {
     twgl.setUniforms(objPrgInf, light0);
 
     // drawing object 2
-    gl.useProgram(objPrgInf1.program);
-    twgl.setUniforms(objPrgInf1, light0); 
 
     for (const pos of positions) {
       m4.identity(world);
@@ -130,19 +126,6 @@ async function main() {
         twgl.drawBufferInfo(gl, bufferInfo);
       }
 		}
-    for (const pos of positions) {
-      m4.identity(world);
-      m4.scale(world, world, v3.scale(temp, one, 1));
-      m4.translate(world, world, pos);
-      m4.rotate(world, world, theta, rotationAxis);
-      twgl.setUniforms(objPrgInf1, coords);
-      for (const { bufferInfo, vao, material } of obj1) {
-        gl.bindVertexArray(vao);
-        twgl.setUniforms(objPrgInf1, {}, material);
-        twgl.drawBufferInfo(gl, bufferInfo);
-      } 
-		}
-
     // logic to move the visual representation of the light source
     m4.identity(world);
     m4.translate(world, world, fragUniforms.u_lightPosition);
@@ -184,10 +167,6 @@ async function main() {
     fragUniforms["u_lightColor"][0] = value / 100.0;
     fragUniforms["u_lightColor"][1] = value / 100.0;
     fragUniforms["u_lightColor"][2] = value / 100.0;
-  });
-  lightTheta.addEventListener("change", () => {
-    const value = lightTheta.value;
-    theta = value * Math.PI / 180.0;
   });
 }
 
